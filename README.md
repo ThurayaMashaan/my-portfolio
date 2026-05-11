@@ -1,11 +1,5 @@
-# Interactive game resume experience
+# Thuraya.exe
 
-Created with [Omma](https://omma.build)
+**Interactive Game Resume Experience**
 
-## Setup
-
-Open `index.html` in your browser, or:
-
-```bash
-npx serve .
-```
+تجربة تفاعلية تجمع بين السيرة الذاتية والألعاب بطريقة إبداعية.
