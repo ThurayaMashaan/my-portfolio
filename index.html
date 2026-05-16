@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Thuraya Al-Otaibi — Interactive Resume</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
@@ -22,18 +22,23 @@
       --blue: #5b9cf6;
       --grid-color: rgba(245, 166, 35, 0.06);
       --blue-dim: #3a6abf;
+      --timeline-h: 62px;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { overflow: hidden; height: 100%; }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Space Grotesk', sans-serif;
       overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      height: 100%;
+      width: 100%;
       cursor: default;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: pan-y;
     }
 
     #grid-canvas {
@@ -48,6 +53,7 @@
       position: relative;
       width: 100vw;
       height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
       z-index: 1;
       display: flex;
       align-items: center;
@@ -65,7 +71,11 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.6s ease;
-      padding-bottom: 120px;
+      padding-bottom: calc(var(--timeline-h) + 28px);
+      padding-top: 60px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
     .level-screen.active {
       opacity: 1;
@@ -101,6 +111,7 @@
       border-radius: 50%;
       border: 1px solid var(--amber-dim);
       transition: all 0.4s ease;
+      cursor: pointer;
     }
     .level-dot.done { background: var(--amber); border-color: var(--amber); }
     .level-dot.active { background: var(--amber); border-color: var(--amber); box-shadow: 0 0 8px var(--amber); }
@@ -176,6 +187,7 @@
       z-index: 10;
       background: var(--bg);
       padding: 20px 56px 28px;
+      height: var(--timeline-h);
     }
 
     #scrubber-track {
@@ -223,14 +235,16 @@
       font-size: 12px; letter-spacing: 2px; padding: 14px 32px;
       cursor: pointer; text-transform: uppercase;
       transition: all 0.3s ease; overflow: hidden;
+      min-height: 48px;
+      display: inline-flex; align-items: center; justify-content: center;
     }
     .btn-primary::before {
       content: ''; position: absolute; inset: 0;
       background: var(--amber-glow); transform: scaleX(0);
       transform-origin: left; transition: transform 0.3s ease;
     }
-    .btn-primary:hover::before { transform: scaleX(1); }
-    .btn-primary:hover { box-shadow: 0 0 20px var(--amber-glow-strong); }
+    .btn-primary:hover::before, .btn-primary:active::before { transform: scaleX(1); }
+    .btn-primary:hover, .btn-primary:active { box-shadow: 0 0 20px var(--amber-glow-strong); }
 
     /* ===== LEVEL 0 ===== */
     #level-0 .empty-grid {
@@ -266,7 +280,6 @@
       flex-shrink: 0;
     }
 
-    /* Faint circuit background traces */
     #circuit-bg-canvas {
       position: absolute;
       inset: 0;
@@ -279,7 +292,6 @@
     }
     #circuit-bg-canvas.visible { opacity: 1; }
 
-    /* SVG for live connection lines */
     #circuit-svg {
       position: absolute;
       inset: 0;
@@ -290,7 +302,6 @@
       z-index: 1;
     }
 
-    /* Circuit nodes */
     .circuit-node {
       position: absolute;
       z-index: 2;
@@ -338,7 +349,6 @@
       background: rgba(245, 166, 35, 0.08);
     }
 
-    /* Corner pin dots */
     .circuit-node::before,
     .circuit-node::after {
       content: '';
@@ -356,7 +366,6 @@
       box-shadow: 0 0 4px var(--amber);
     }
 
-    /* Circuit trace line segments */
     .circuit-trace {
       stroke-dasharray: var(--len, 200);
       stroke-dashoffset: var(--len, 200);
@@ -373,7 +382,6 @@
       stroke-dashoffset: 0;
     }
 
-    /* Board glow overlay */
     #board-glow {
       position: absolute;
       inset: -20px;
@@ -386,7 +394,6 @@
     }
     #board-glow.on { opacity: 1; }
 
-    /* Level 1 text block */
     #l1-text-block {
       text-align: center;
       opacity: 0;
@@ -457,7 +464,7 @@
       animation: flowRight 4s linear infinite;
       cursor: pointer;
     }
-    .order-packet:hover { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 10px var(--amber-glow); }
+    .order-packet:hover, .order-packet:active { border-color: var(--amber); color: var(--amber); box-shadow: 0 0 10px var(--amber-glow); }
     .order-packet .pkt-id { color: var(--amber); font-size: 9px; }
 
     @keyframes flowRight {
@@ -511,18 +518,50 @@
     }
     .metric-card:last-of-type { border-bottom: 1px solid rgba(245, 166, 35, 0.1); }
     .metric-card + .metric-card { border-top: 1px solid rgba(245, 166, 35, 0.12); }
-    .metric-card:hover { border-color: var(--amber); box-shadow: 0 0 12px var(--amber-glow); }
+    .metric-card:hover, .metric-card:active { border-color: var(--amber); box-shadow: 0 0 12px var(--amber-glow); }
 
-    .metric-value { font-family: 'Space Mono', monospace; font-size: 18px; color: var(--amber); font-weight: 700; line-height: 1.2; }
-    .metric-label { font-size: 10px; color: var(--text-dim); margin-top: 3px; line-height: 1.4; }
+    .metric-value {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(14px, 3.8vw, 18px);
+      color: var(--amber);
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .metric-label {
+      font-size: clamp(9px, 2.4vw, 10px);
+      color: var(--text-dim);
+      margin-top: 3px;
+      line-height: 1.4;
+    }
     .metric-story {
-      font-size: 10.5px; color: var(--text); line-height: 1.6;
-      margin-top: 10px; display: none; padding-top: 10px;
+      font-size: clamp(9.5px, 2.5vw, 10.5px);
+      color: var(--text);
+      line-height: 1.6;
+      margin-top: 10px;
+      display: none;
+      padding-top: 10px;
       border-top: 1px solid rgba(245, 166, 35, 0.15);
     }
     .metric-card.expanded .metric-story { display: block; }
     .metric-card.expanded { border-color: var(--amber) !important; border-bottom: 1px solid var(--amber) !important; background: rgba(245, 166, 35, 0.03); }
     .metric-card.expanded + .metric-card { border-top: 1px solid var(--amber); }
+
+    /* Metric expand indicator */
+    .metric-card::after {
+      content: '+';
+      position: absolute;
+      top: 12px; right: 12px;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      color: rgba(245, 166, 35, 0.3);
+      transition: all 0.3s ease;
+      line-height: 1;
+    }
+    .metric-card.expanded::after {
+      content: '−';
+      color: var(--amber);
+    }
+    .metric-card:hover::after, .metric-card:active::after { color: var(--amber); }
 
     /* ===== LEVEL 3 ===== */
     #level-3 .flow-diagram {
@@ -637,13 +676,13 @@
     #plane-icon { position: absolute; font-size: 20px; opacity: 0; transition: all 0.3s ease; }
     #mandarin-chars { position: absolute; right: 40px; top: 30px; font-size: 32px; color: rgba(245, 166, 35, 0.3); letter-spacing: 8px; opacity: 0; transition: opacity 1s ease; }
 
-    #l4-caption { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    #l4-caption { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 16px; }
     #l4-caption .caption-main { font-size: 26px; font-weight: 600; color: var(--amber); text-align: center; letter-spacing: 0.5px; }
     #l4-caption .caption-sub { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text-dim); text-align: center; line-height: 1.8; letter-spacing: 0.5px; }
 
     #l4-closing {
       text-align: center; max-width: 600px; margin-top: 16px; margin-bottom: 8px;
-      padding: 0; opacity: 0; transition: opacity 1s ease;
+      padding: 0 16px; opacity: 0; transition: opacity 1s ease;
     }
     #l4-closing .closing-text { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.45; letter-spacing: -0.3px; }
 
@@ -682,11 +721,13 @@
       font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px;
       cursor: pointer; text-transform: uppercase; transition: all 0.3s ease;
       text-decoration: none; position: relative; z-index: 1000;
+      min-height: 48px;
+      display: inline-flex; align-items: center; justify-content: center;
     }
     .action-btn.primary { background: var(--amber); color: var(--bg); border: 1px solid var(--amber); }
-    .action-btn.primary:hover { box-shadow: 0 0 20px var(--amber-glow-strong); }
+    .action-btn.primary:hover, .action-btn.primary:active { box-shadow: 0 0 20px var(--amber-glow-strong); }
     .action-btn.secondary { border: 1px solid rgba(245, 166, 35, 0.4); color: var(--amber); }
-    .action-btn.secondary:hover { background: var(--amber-glow); border-color: var(--amber); }
+    .action-btn.secondary:hover, .action-btn.secondary:active { background: var(--amber-glow); border-color: var(--amber); }
 
     .systems-status { display: flex; gap: 16px; margin-top: 24px; opacity: 0; animation: fadeUp 0.8s ease 1.2s forwards; }
     .status-item { display: flex; align-items: center; gap: 6px; font-family: 'Space Mono', monospace; font-size: 9px; color: var(--text-dim); }
@@ -726,21 +767,282 @@
 
     #particle-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 
+    /* ===== TABLET ===== */
     @media (max-width: 768px) {
+      #hud-top { padding: 14px 16px; }
+      #level-indicator { font-size: 9px; letter-spacing: 2px; gap: 8px; }
+      #level-indicator + div { font-size: 9px !important; letter-spacing: 0.5px !important; }
+      .level-dot { width: 7px; height: 7px; }
+
       #philosophy-panel {
-        position: fixed; right: auto; bottom: 80px; left: 0; top: auto; transform: none;
+        position: fixed; right: auto; bottom: var(--timeline-h); left: 0; top: auto; transform: none;
         width: 100%; border-left: none; border-top: 3px solid var(--amber); border-right: none;
         max-height: 120px; overflow-y: auto; z-index: 99;
       }
       #philosophy-panel.collapsed { width: 100%; height: 28px; max-height: 28px; padding: 0 12px; display: flex; align-items: center; border-top-color: rgba(245,166,35,0.35); }
       #phil-tab { writing-mode: horizontal-tb; transform: none; width: auto; position: static; }
       #phil-tab span { writing-mode: horizontal-tb; transform: none; }
-      #level-2 { flex-direction: column !important; overflow-y: auto; padding: 80px 12px 160px; }
+
+      /* LEVEL 2 TABLET — side by side but scaled */
+      #level-2 {
+        padding: 70px 12px calc(var(--timeline-h) + 28px) !important;
+      }
       #order-flow-area { min-height: 200px; }
-      #dashboard-panel { width: 100% !important; min-width: unset !important; transform: translateY(60px) !important; max-height: none; }
-      #dashboard-panel.slide-in { transform: translateY(0) !important; }
+      #dashboard-panel {
+        width: 240px !important; min-width: 240px !important;
+        max-height: calc(100vh - 160px);
+      }
+
       #sela-hub-area { width: 100%; height: 340px; transform: scale(0.78); transform-origin: top center; }
       #circuit-wrapper { width: 100%; transform: scale(0.85); transform-origin: top center; }
+
+      .profile-card { width: 90vw !important; max-width: 560px; padding: 28px 24px !important; }
+      .profile-actions { flex-wrap: wrap; }
+      .action-btn { min-width: 45%; }
+      .systems-status { flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+      #level-3 .flow-diagram { width: 90vw; max-width: 700px; transform: scale(0.85); transform-origin: top center; }
+      #level-0 .empty-grid { width: 85vw; max-width: 500px; height: 260px; }
+
+      #l4-caption .caption-main { font-size: clamp(18px, 4.5vw, 26px); }
+      #l4-closing .closing-text { font-size: clamp(18px, 4.5vw, 26px); }
+
+      #timeline { padding: 16px 32px 22px; }
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 480px) {
+      :root { --timeline-h: 56px; }
+
+      #hud-top { padding: 10px 12px; }
+      #level-indicator { font-size: 8px; letter-spacing: 1.5px; gap: 6px; }
+      #level-indicator + div { font-size: 7px !important; letter-spacing: 0.3px !important; }
+      .level-dot { width: 6px; height: 6px; }
+
+      .level-screen {
+        padding-top: 52px;
+        padding-bottom: calc(var(--timeline-h) + 24px);
+        justify-content: flex-start;
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      /* Center content vertically for levels that need it */
+      #level-0, #level-1, #level-3, #level-35, #level-4 {
+        justify-content: center;
+      }
+
+      #philosophy-panel {
+        position: fixed; right: auto; bottom: var(--timeline-h); left: 0; top: auto; transform: none;
+        width: 100%; border-left: none; border-top: 2px solid var(--amber); border-right: none;
+        max-height: 100px; overflow-y: auto; z-index: 99; padding: 10px 12px;
+      }
+      #philosophy-panel.collapsed { width: 100%; height: 24px; max-height: 24px; padding: 0 10px; }
+      .phil-line { font-size: 10px; margin-bottom: 6px; padding-left: 8px; }
+
+      #timeline { padding: 12px 16px 18px; height: var(--timeline-h); }
+      .timeline-mark { font-size: 8px !important; letter-spacing: 0.8px !important; }
+      .timeline-marks { margin-top: 6px; }
+      #scrubber-thumb { width: 14px; height: 14px; }
+
+      .btn-primary {
+        font-size: 10px; letter-spacing: 1.5px; padding: 14px 20px;
+        min-height: 48px; width: auto; max-width: 90vw;
+      }
+
+      .level-tag { font-size: 8px; letter-spacing: 2px; }
+
+      /* -- LEVEL 0 -- */
+      #level-0 .empty-grid { width: 88vw; max-width: 340px; height: 180px; margin-bottom: 32px; }
+      #level-0 .l0-text { margin-bottom: 28px; }
+      #level-0 .l0-location { font-size: 9px; letter-spacing: 2px; }
+      #level-0 .l0-headline { font-size: clamp(17px, 5vw, 26px); line-height: 1.5; padding: 0 8px; }
+      .cursor-blink { height: 18px; }
+
+      /* -- LEVEL 1 -- */
+      #circuit-wrapper {
+        width: calc(100vw - 16px) !important; max-width: 100vw;
+        height: 200px !important;
+        transform: none !important;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      .circuit-node { padding: 5px 7px !important; font-size: 7px !important; }
+      .circuit-node .node-label-top { font-size: 5px !important; letter-spacing: 0.8px !important; margin-bottom: 1px !important; }
+      #l1-text-block { margin-bottom: 14px; }
+      #l1-text-block .l1-line1 { font-size: 9px; padding: 0 12px; letter-spacing: 1.5px; }
+      #l1-text-block .l1-line2 { font-size: clamp(13px, 3.8vw, 17px); padding: 0 12px; line-height: 1.6; }
+      #l1-text-block .l1-line3 { font-size: 9px; padding: 0 12px; }
+      #l1-role { font-size: 8px; letter-spacing: 1.5px; margin-bottom: 16px; }
+
+      /* -- LEVEL 2 MOBILE — vertical stack, ALL visible -- */
+      #level-2 {
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        padding: 48px 0 calc(var(--timeline-h) + 24px) 0 !important;
+        gap: 0 !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+      }
+
+      #order-flow-area {
+        min-height: 120px !important;
+        max-height: 130px !important;
+        height: 130px !important;
+        width: 100% !important;
+        flex: none !important;
+        position: relative;
+        order: 1;
+      }
+
+      .order-packet {
+        font-size: 8px !important;
+        padding: 4px 8px !important;
+      }
+      .order-packet .pkt-id { font-size: 7px !important; }
+
+      @keyframes flowRight {
+        from { transform: translateX(-150px); opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        to { transform: translateX(calc(100vw + 50px)); opacity: 0; }
+      }
+
+      #l2-btn-zone {
+        position: relative !important;
+        bottom: auto !important;
+        left: auto !important;
+        order: 2;
+        margin: 0 12px !important;
+        padding: 14px 16px !important;
+        width: auto !important;
+        max-width: 100% !important;
+        backdrop-filter: none !important;
+        box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.12), 0 0 16px rgba(245, 166, 35, 0.1) !important;
+      }
+      #l2-btn-zone .zone-label { font-size: 16px !important; }
+      #l2-btn-zone .zone-sub { font-size: 10px !important; margin-bottom: 12px !important; }
+      #l2-btn-zone .btn-primary { width: 100%; }
+
+      #dashboard-panel {
+        order: 3;
+        width: auto !important;
+        min-width: unset !important;
+        max-width: 100% !important;
+        margin: 10px 12px 20px !important;
+        transform: none !important;
+        border-left: none !important;
+        border-top: 3px solid var(--amber) !important;
+        border-right: none !important;
+        padding: 16px 12px !important;
+        max-height: none !important;
+        overflow-y: visible !important;
+        background: rgba(26, 23, 16, 0.95) !important;
+      }
+      #dashboard-panel.slide-in { transform: none !important; }
+
+      .dash-title { font-size: 8px; margin-bottom: 12px; }
+
+      /* 5 metric cards in 2-column + 1 grid — all visible */
+      .metric-cards-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .metric-cards-grid .metric-card {
+        border: 1px solid rgba(245, 166, 35, 0.15) !important;
+        border-bottom: 1px solid rgba(245, 166, 35, 0.15) !important;
+        padding: 10px 10px 10px 10px !important;
+        margin: 0 !important;
+      }
+      .metric-cards-grid .metric-card:last-child {
+        grid-column: 1 / -1;
+      }
+      .metric-cards-grid .metric-card::after {
+        top: 8px; right: 8px; font-size: 11px;
+      }
+
+      .metric-value { font-size: clamp(13px, 3.5vw, 16px) !important; }
+      .metric-label { font-size: clamp(8px, 2.2vw, 9px) !important; line-height: 1.3 !important; }
+      .metric-story { font-size: 9px !important; line-height: 1.5 !important; }
+
+      /* Expanded card takes full width */
+      .metric-cards-grid .metric-card.expanded {
+        grid-column: 1 / -1;
+      }
+
+      /* -- LEVEL 3 -- */
+      #level-3 .flow-diagram {
+        width: 95vw !important; max-width: 360px;
+        height: 240px !important;
+        transform: none !important;
+      }
+      .flow-node { font-size: 8px !important; padding: 7px 9px !important; }
+      #l3-label { font-size: 11px; padding: 0 12px; text-align: center; }
+
+      /* -- LEVEL 3.5 -- */
+      #sela-hub-area {
+        width: 100% !important; height: 240px !important;
+        transform: scale(0.55) !important; transform-origin: top center !important;
+        margin-bottom: 0 !important;
+      }
+      .sela-hub { font-size: 9px !important; }
+      .sela-hub .hub-sub { font-size: 7px !important; }
+      .sela-node { font-size: 8px !important; padding: 8px 10px !important; width: 120px !important; }
+      .sela-node .node-num { font-size: 7px !important; }
+      #sela-pbi { font-size: 8px; gap: 6px; }
+      #sela-pbi .pbi-icon { font-size: 16px; }
+      #sela-main { font-size: clamp(16px, 4.5vw, 24px); padding: 0 12px; }
+      #sela-sub { font-size: 9px; line-height: 1.8; padding: 0 12px; }
+
+      /* -- LEVEL 4 -- */
+      #level-4 .map-area { height: 200px !important; margin-bottom: 18px !important; }
+      .map-dot { width: 10px !important; height: 10px !important; }
+      .map-label { font-size: 8px !important; }
+      #mandarin-chars { font-size: 20px !important; right: 12px !important; top: 12px !important; }
+      #l4-caption .caption-main { font-size: clamp(15px, 4.2vw, 24px) !important; }
+      #l4-caption .caption-sub { font-size: 9px !important; line-height: 1.7 !important; }
+      #l4-closing { padding: 0 12px !important; }
+      #l4-closing .closing-text { font-size: clamp(15px, 4.2vw, 24px) !important; line-height: 1.5 !important; }
+
+      /* -- LEVEL 5 -- */
+      #level-5 { justify-content: flex-start !important; padding-top: 56px; }
+      .credits-header { font-size: 8px; letter-spacing: 2px; padding: 0 12px; text-align: center; margin-bottom: 20px; }
+      .profile-card {
+        width: calc(100vw - 24px) !important; max-width: 400px;
+        padding: 22px 16px !important;
+      }
+      .profile-name { font-size: 22px; }
+      .profile-title { font-size: 11px; line-height: 1.5; }
+      .profile-location { font-size: 10px; margin-bottom: 20px; }
+      .profile-contact { grid-template-columns: 1fr !important; gap: 8px; }
+      .contact-item { font-size: 10px; overflow: hidden; text-overflow: ellipsis; }
+      .skills-row { gap: 5px; }
+      .skill-tag { font-size: 8px; padding: 3px 7px; }
+      .profile-actions { flex-direction: column; gap: 8px; }
+      .action-btn { font-size: 9px; padding: 14px 12px; min-height: 48px; min-width: unset !important; }
+      .systems-status { flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+      .status-item { font-size: 8px; }
+    }
+
+    /* ===== VERY SMALL MOBILE ===== */
+    @media (max-width: 375px) {
+      #level-0 .l0-headline { font-size: 16px; }
+      #l1-text-block .l1-line2 { font-size: 13px; }
+      #sela-hub-area { transform: scale(0.48) !important; }
+      .profile-card { padding: 18px 12px !important; }
+      .profile-name { font-size: 20px; }
+      #level-3 .flow-diagram { max-width: 300px; height: 220px !important; }
+
+      .metric-cards-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .metric-cards-grid .metric-card:last-child {
+        grid-column: 1;
+      }
+      .metric-cards-grid .metric-card.expanded {
+        grid-column: 1;
+      }
     }
   </style>
 </head>
@@ -823,7 +1125,6 @@
       <div id="board-glow"></div>
       <canvas id="circuit-bg-canvas" width="640" height="320"></canvas>
       <svg id="circuit-svg" viewBox="0 0 640 320"></svg>
-      <!-- Nodes injected by JS -->
     </div>
 
     <div id="l1-text-block">
@@ -842,41 +1143,43 @@
   <!-- LEVEL 2 -->
   <div class="level-screen" id="level-2">
     <div id="order-flow-area">
-      <div style="position:absolute;top:18px;left:40px;right:0;text-align:left;">
+      <div style="position:absolute;top:18px;left:20px;right:0;text-align:left;z-index:2;">
         <div class="level-tag">LEVEL 02 — OPERATIONS RUNNING</div>
       </div>
-      <div id="l2-btn-zone">
-        <div class="zone-label">Orders are moving.</div>
-        <div class="zone-sub">Click any metric to hear how it was done.</div>
-        <button class="btn-primary" onclick="goToLevel(3)">[ BOTTLENECK DETECTED → ]</button>
-      </div>
+    </div>
+    <div id="l2-btn-zone">
+      <div class="zone-label">Orders are moving.</div>
+      <div class="zone-sub">Click any metric to hear how it was done.</div>
+      <button class="btn-primary" onclick="goToLevel(3)">[ BOTTLENECK DETECTED → ]</button>
     </div>
     <div id="dashboard-panel">
       <div class="dash-title">▸ Live Dashboard · Qabas Store</div>
-      <div class="metric-card" onclick="toggleMetric(this)" data-tooltip="Peak daily order volume during Ramadan and National Day campaigns">
-        <div class="metric-value">200+</div>
-        <div class="metric-label">Daily Peak Orders</div>
-        <div class="metric-story">"I built the catalog, wrote the listings, managed the supplier calls, and processed the orders — alone. During peak seasons I was handling 200+ orders a day from a single dashboard. I learned to triage by urgency and region before we had any automation."</div>
-      </div>
-      <div class="metric-card" onclick="toggleMetric(this)" data-tooltip="Annual gross revenue generated through the Salla-powered store">
-        <div class="metric-value">SAR 1.8–2.5M</div>
-        <div class="metric-label">Annual Revenue · Peak Year</div>
-        <div class="metric-story">"We went from zero to SAR 1.8M in year one and hit SAR 2.5M by year two. I drove this by expanding the product line from 12 to 80+ SKUs and building a repeat-purchase system through WhatsApp follow-ups before CRM tools were common on Salla."</div>
-      </div>
-      <div class="metric-card" onclick="toggleMetric(this)" data-tooltip="Reduction in stockout events through proactive demand tracking">
-        <div class="metric-value">−20%</div>
-        <div class="metric-label">Backorder Rate Reduction</div>
-        <div class="metric-story">"I built a manual forecasting sheet in Excel that tracked sell-through velocity by SKU. When I noticed patterns — charcoal spiked every Thursday — I started pre-ordering 3 weeks ahead. Backorders dropped 20% within one quarter."</div>
-      </div>
-      <div class="metric-card" onclick="toggleMetric(this)" data-tooltip="Engagement lift from content and campaign optimization">
-        <div class="metric-value">+40%</div>
-        <div class="metric-label">Customer Engagement</div>
-        <div class="metric-story">"I rewrote every product description to speak to the buyer's ritual — how the incense would smell in their home, not just its weight or origin. Engagement went up 40%. People buy the feeling, not the product."</div>
-      </div>
-      <div class="metric-card" onclick="toggleMetric(this)" data-tooltip="Conversion rate improvement from UX and trust optimizations">
-        <div class="metric-value">+15%</div>
-        <div class="metric-label">Conversion Rate Boost</div>
-        <div class="metric-story">"I ran A/B tests on the checkout flow — changing button placement, adding trust badges, and simplifying the shipping selector. Conversion climbed 15%. No dev team. Just me, the platform settings, and a hypothesis."</div>
+      <div class="metric-cards-grid">
+        <div class="metric-card" data-tooltip="Peak daily order volume during Ramadan and National Day campaigns">
+          <div class="metric-value">200+</div>
+          <div class="metric-label">Daily Peak Orders</div>
+          <div class="metric-story">"I built the catalog, wrote the listings, managed the supplier calls, and processed the orders — alone. During peak seasons I was handling 200+ orders a day from a single dashboard. I learned to triage by urgency and region before we had any automation."</div>
+        </div>
+        <div class="metric-card" data-tooltip="Annual gross revenue generated through the Salla-powered store">
+          <div class="metric-value">SAR 1.8–2.5M</div>
+          <div class="metric-label">Annual Revenue · Peak Year</div>
+          <div class="metric-story">"We went from zero to SAR 1.8M in year one and hit SAR 2.5M by year two. I drove this by expanding the product line from 12 to 80+ SKUs and building a repeat-purchase system through WhatsApp follow-ups before CRM tools were common on Salla."</div>
+        </div>
+        <div class="metric-card" data-tooltip="Reduction in stockout events through proactive demand tracking">
+          <div class="metric-value">−20%</div>
+          <div class="metric-label">Backorder Rate Reduction</div>
+          <div class="metric-story">"I built a manual forecasting sheet in Excel that tracked sell-through velocity by SKU. When I noticed patterns — charcoal spiked every Thursday — I started pre-ordering 3 weeks ahead. Backorders dropped 20% within one quarter."</div>
+        </div>
+        <div class="metric-card" data-tooltip="Engagement lift from content and campaign optimization">
+          <div class="metric-value">+40%</div>
+          <div class="metric-label">Customer Engagement</div>
+          <div class="metric-story">"I rewrote every product description to speak to the buyer's ritual — how the incense would smell in their home, not just its weight or origin. Engagement went up 40%. People buy the feeling, not the product."</div>
+        </div>
+        <div class="metric-card" data-tooltip="Conversion rate improvement from UX and trust optimizations">
+          <div class="metric-value">+15%</div>
+          <div class="metric-label">Conversion Rate Boost</div>
+          <div class="metric-story">"I ran A/B tests on the checkout flow — changing button placement, adding trust badges, and simplifying the shipping selector. Conversion climbed 15%. No dev team. Just me, the platform settings, and a hypothesis."</div>
+        </div>
       </div>
     </div>
   </div>
@@ -976,6 +1279,18 @@
 </div><!-- /stage -->
 
 <script>
+// ===== MOBILE VIEWPORT HEIGHT FIX =====
+function setVH() {
+  document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+}
+setVH();
+window.addEventListener('resize', setVH);
+window.addEventListener('orientationchange', () => setTimeout(setVH, 100));
+
+// ===== DETECT MOBILE =====
+function isMobile() { return window.innerWidth <= 480; }
+function isTablet() { return window.innerWidth <= 768 && window.innerWidth > 480; }
+
 // ===== PHILOSOPHY PANEL =====
 function togglePhilosophy(e) {
   if (e) e.stopPropagation();
@@ -986,6 +1301,11 @@ function togglePhilosophy(e) {
   btn.title = isCollapsed ? 'Expand panel' : 'Collapse panel';
 }
 document.getElementById('phil-tab').addEventListener('click', () => {
+  const panel = document.getElementById('philosophy-panel');
+  if (panel.classList.contains('collapsed')) togglePhilosophy(null);
+});
+document.getElementById('phil-tab').addEventListener('touchend', (e) => {
+  e.preventDefault();
   const panel = document.getElementById('philosophy-panel');
   if (panel.classList.contains('collapsed')) togglePhilosophy(null);
 });
@@ -1003,12 +1323,14 @@ const markSnapMap = [
   { id: 'tmark-2026', pct: 100    },
 ];
 
+let isTransitioning = false;
+
 // ===== GRID CANVAS =====
 const gridCanvas = document.getElementById('grid-canvas');
 const gctx = gridCanvas.getContext('2d');
 function resizeGrid() { gridCanvas.width = window.innerWidth; gridCanvas.height = window.innerHeight; drawGrid(); }
 function drawGrid() {
-  const size = 48;
+  const size = isMobile() ? 28 : isTablet() ? 36 : 48;
   gctx.clearRect(0, 0, gridCanvas.width, gridCanvas.height);
   gctx.strokeStyle = 'rgba(245, 166, 35, 0.06)';
   gctx.lineWidth = 1;
@@ -1042,7 +1364,11 @@ function animateParticles() {
 function buildEmptyGrid() {
   const container = document.getElementById('empty-grid');
   container.innerHTML = '';
-  const cols=10, rows=6, cw=500/cols, ch=300/rows;
+  const w = container.offsetWidth || (isMobile() ? Math.min(340, window.innerWidth * 0.88) : 500);
+  const h = container.offsetHeight || (isMobile() ? 180 : 300);
+  const cols = isMobile() ? 8 : 10;
+  const rows = isMobile() ? 5 : 6;
+  const cw = w / cols, ch = h / rows;
   for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
     const cell=document.createElement('div');
     cell.className='grid-cell';
@@ -1052,85 +1378,49 @@ function buildEmptyGrid() {
 }
 
 // ===== LEVEL 1 — CIRCUIT BOARD =====
+let CW = 130, CH = 54;
+let NODES = {};
 
-/*  Layout (640 × 320 canvas / SVG):
-    ┌─────────────────────────────────┐
-    │          [SALLA] (top-center)   │
-    │             |                   │
-    │  [SUPPLIER]─┼─[PAYMENT]─[LOGI] │
-    │             |                   │
-    │         [STORE LIVE]            │
-    └─────────────────────────────────┘
+function computeCircuitLayout() {
+  if (isMobile()) {
+    CW = 80; CH = 36;
+    const wrapW = window.innerWidth - 16;
+    const centerX = (wrapW - CW) / 2;
+    const gap = Math.min(20, (wrapW - CW * 3) / 4);
+    const leftX = Math.max(4, centerX - CW - gap);
+    const rightX = Math.min(wrapW - CW - 4, centerX + CW + gap);
+    NODES = {
+      salla:    { x: centerX, y: 8,   label:'SALLA PLATFORM',   sub:'MARKETPLACE' },
+      supplier: { x: leftX,   y: 80,  label:'SUPPLIER',         sub:'SOURCING' },
+      payment:  { x: centerX, y: 80,  label:'PAYMENT',          sub:'CHECKOUT' },
+      logistics:{ x: rightX,  y: 80,  label:'LOGISTICS',        sub:'DELIVERY' },
+      store:    { x: centerX, y: 150, label:'STORE LIVE',        sub:'QABAS · 2020', isStore:true },
+    };
+  } else if (isTablet()) {
+    CW = 110; CH = 48;
+    NODES = {
+      salla:    { x:215, y:16,  label:'SALLA PLATFORM',     sub:'MARKETPLACE' },
+      supplier: { x:50,  y:115, label:'SUPPLIER CONTRACTS', sub:'SOURCING' },
+      payment:  { x:215, y:115, label:'PAYMENT GATEWAY',    sub:'CHECKOUT' },
+      logistics:{ x:380, y:115, label:'LOGISTICS PARTNER',  sub:'DELIVERY' },
+      store:    { x:215, y:215, label:'STORE LIVE',          sub:'QABAS · 2020', isStore:true },
+    };
+  } else {
+    CW = 130; CH = 54;
+    NODES = {
+      salla:    { x:255, y:18,  label:'SALLA PLATFORM',     sub:'MARKETPLACE' },
+      supplier: { x:60,  y:132, label:'SUPPLIER CONTRACTS', sub:'SOURCING' },
+      payment:  { x:255, y:132, label:'PAYMENT GATEWAY',    sub:'CHECKOUT' },
+      logistics:{ x:450, y:132, label:'LOGISTICS PARTNER',  sub:'DELIVERY' },
+      store:    { x:255, y:248, label:'STORE LIVE',          sub:'QABAS · 2020', isStore:true },
+    };
+  }
+}
+computeCircuitLayout();
 
-    Node sizes: W=130 H=54
-    Positions (top-left corner):
-      salla:    x=255, y=18
-      supplier: x=60,  y=132
-      payment:  x=255, y=132
-      logistics:x=450, y=132
-      store:    x=255, y=248
-*/
-
-const CW = 130, CH = 54;
-const NODES = {
-  salla:    { x:255, y:18,  label:'SALLA PLATFORM',     sub:'MARKETPLACE' },
-  supplier: { x:60,  y:132, label:'SUPPLIER CONTRACTS', sub:'SOURCING' },
-  payment:  { x:255, y:132, label:'PAYMENT GATEWAY',    sub:'CHECKOUT' },
-  logistics:{ x:450, y:132, label:'LOGISTICS PARTNER',  sub:'DELIVERY' },
-  store:    { x:255, y:248, label:'STORE LIVE',          sub:'QABAS · 2020', isStore:true },
-};
-
-// Center of each node
 function nc(id) { const n=NODES[id]; return {x:n.x+CW/2, y:n.y+CH/2}; }
 
-/*  90-degree trace routes (arrays of [x,y] waypoints):
-    Each route is rendered as a polyline with right-angle bends.
-
-    salla → payment (vertical down):
-      from bottom of salla → top of payment  (same x=320)
-
-    payment → supplier (horizontal left then down):
-      right-angle: payment left edge → bend at y=payment-center → supplier right edge
-
-    payment → logistics (horizontal right):
-      payment right edge → logistics left edge  (same y=159)
-
-    supplier → store (down then right):
-      supplier bottom → bend at y=store-center → store left edge
-
-    payment → store (straight vertical):
-      payment bottom → store top  (same x=320)
-
-    logistics → store (down then left):
-      logistics bottom → bend at y=store-center → store right edge
-*/
-const TRACES = [
-  { id:'t-salla-pay',
-    pts:[ [nc('salla').x,    nc('salla').y+CH/2],
-          [nc('payment').x,  nc('payment').y-CH/2] ] },
-
-  { id:'t-pay-sup',
-    pts:[ [nc('payment').x-CW/2,  nc('payment').y],
-          [nc('supplier').x+CW/2, nc('supplier').y] ] },
-
-  { id:'t-pay-log',
-    pts:[ [nc('payment').x+CW/2,  nc('payment').y],
-          [nc('logistics').x-CW/2,nc('logistics').y] ] },
-
-  { id:'t-sup-store',
-    pts:[ [nc('supplier').x,      nc('supplier').y+CH/2],
-          [nc('supplier').x,      nc('store').y+CH/2],  // bend down
-          [nc('store').x-CW/2,    nc('store').y+CH/2] ] },
-
-  { id:'t-pay-store',
-    pts:[ [nc('payment').x,  nc('payment').y+CH/2],
-          [nc('payment').x,  nc('store').y-CH/2]  ] },
-
-  { id:'t-log-store',
-    pts:[ [nc('logistics').x,     nc('logistics').y+CH/2],
-          [nc('logistics').x,     nc('store').y+CH/2],
-          [nc('store').x+CW/2,    nc('store').y+CH/2] ] },
-];
+const TRACES = [];
 
 function ptsToD(pts) {
   return pts.map((p,i)=>(i===0?'M':'L')+p[0]+' '+p[1]).join(' ');
@@ -1145,13 +1435,39 @@ function polylineLength(pts) {
   return len;
 }
 
+function recomputeTraces() {
+  TRACES.length = 0;
+  TRACES.push(
+    { id:'t-salla-pay',
+      pts:[ [nc('salla').x,    nc('salla').y+CH/2],
+            [nc('payment').x,  nc('payment').y-CH/2] ] },
+    { id:'t-pay-sup',
+      pts:[ [nc('payment').x-CW/2,  nc('payment').y],
+            [nc('supplier').x+CW/2, nc('supplier').y] ] },
+    { id:'t-pay-log',
+      pts:[ [nc('payment').x+CW/2,  nc('payment').y],
+            [nc('logistics').x-CW/2,nc('logistics').y] ] },
+    { id:'t-sup-store',
+      pts:[ [nc('supplier').x,      nc('supplier').y+CH/2],
+            [nc('supplier').x,      nc('store').y+CH/2],
+            [nc('store').x-CW/2,    nc('store').y+CH/2] ] },
+    { id:'t-pay-store',
+      pts:[ [nc('payment').x,  nc('payment').y+CH/2],
+            [nc('payment').x,  nc('store').y-CH/2]  ] },
+    { id:'t-log-store',
+      pts:[ [nc('logistics').x,     nc('logistics').y+CH/2],
+            [nc('logistics').x,     nc('store').y+CH/2],
+            [nc('store').x+CW/2,    nc('store').y+CH/2] ] }
+  );
+}
+
 function drawCircuitBackground() {
   const canvas = document.getElementById('circuit-bg-canvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,640,320);
+  const cW = canvas.width, cH = canvas.height;
+  ctx.clearRect(0, 0, cW, cH);
 
-  // Faint ghost traces matching the real routes
   ctx.strokeStyle = 'rgba(245,166,35,0.07)';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([]);
@@ -1161,9 +1477,9 @@ function drawCircuitBackground() {
     ctx.stroke();
   });
 
-  // Scattered short background traces for circuit-board texture
   ctx.strokeStyle = 'rgba(245,166,35,0.04)';
   ctx.lineWidth = 1;
+  const sx = cW / 640, sy = cH / 320;
   const extraTraces = [
     [[40,18],[40,80],[180,80]],
     [[590,18],[590,100],[510,100]],
@@ -1177,15 +1493,14 @@ function drawCircuitBackground() {
   ];
   extraTraces.forEach(pts=>{
     ctx.beginPath();
-    pts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));
+    pts.forEach((p,i)=>i===0?ctx.moveTo(p[0]*sx,p[1]*sy):ctx.lineTo(p[0]*sx,p[1]*sy));
     ctx.stroke();
   });
 
-  // Via dots at bends
   const vias = [[40,80],[40,260],[590,100],[590,260],[125,50],[515,50]];
   vias.forEach(v=>{
     ctx.beginPath();
-    ctx.arc(v[0],v[1],3,0,Math.PI*2);
+    ctx.arc(v[0]*sx,v[1]*sy,3,0,Math.PI*2);
     ctx.fillStyle='rgba(245,166,35,0.1)';
     ctx.fill();
     ctx.strokeStyle='rgba(245,166,35,0.15)';
@@ -1197,14 +1512,22 @@ function drawCircuitBackground() {
 }
 
 function buildCircuitBoard() {
+  computeCircuitLayout();
+  recomputeTraces();
+
   const wrapper = document.getElementById('circuit-wrapper');
-  // Remove old nodes
   wrapper.querySelectorAll('.circuit-node').forEach(el=>el.remove());
 
   const svg = document.getElementById('circuit-svg');
+  const svgW = isMobile() ? (window.innerWidth - 16) : 640;
+  const svgH = isMobile() ? 200 : 320;
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
   svg.innerHTML = '';
 
-  // Build SVG traces (dim initially)
+  const bgCanvas = document.getElementById('circuit-bg-canvas');
+  bgCanvas.width = svgW;
+  bgCanvas.height = svgH;
+
   TRACES.forEach(t=>{
     const len = polylineLength(t.pts);
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -1216,7 +1539,6 @@ function buildCircuitBoard() {
     svg.appendChild(path);
   });
 
-  // Build node elements
   Object.entries(NODES).forEach(([id,n])=>{
     const el = document.createElement('div');
     el.className = 'circuit-node' + (n.isStore ? ' store-node' : '');
@@ -1224,7 +1546,6 @@ function buildCircuitBoard() {
     el.style.cssText = `left:${n.x}px;top:${n.y}px;width:${CW}px;height:${CH}px;display:flex;flex-direction:column;align-items:center;justify-content:center;`;
     el.innerHTML = `<span class="node-label-top">${n.sub}</span>${n.label}`;
     wrapper.appendChild(el);
-    // Show node (opacity will be driven by .powered)
     setTimeout(()=>{ el.style.opacity='1'; }, 0);
   });
 
@@ -1241,7 +1562,6 @@ function powerTrace(id) {
     const len = polylineLength(t.pts);
     el.style.strokeDasharray = len;
     el.style.strokeDashoffset = len;
-    // Force reflow then animate
     el.getBoundingClientRect();
     el.style.transition = 'stroke-dashoffset 0.55s ease';
     el.style.strokeDashoffset = '0';
@@ -1254,46 +1574,30 @@ function powerNode(id) {
 }
 
 function animateCircuitBoard() {
-  // All nodes visible but unpowered from the start
   Object.keys(NODES).forEach(id=>{
     const el=document.getElementById('cn-'+id);
     if(el) el.style.opacity='1';
   });
 
-  // STEP 1 — 0s: Salla lights up
   setTimeout(()=>{ powerNode('salla'); }, 0);
-
-  // STEP 2 — 0.7s: Current flows down → Payment
   setTimeout(()=>{ powerTrace('t-salla-pay'); }, 700);
   setTimeout(()=>{ powerNode('payment'); }, 1200);
-
-  // STEP 3 — 1.4s: Current left → Supplier
   setTimeout(()=>{ powerTrace('t-pay-sup'); }, 1400);
   setTimeout(()=>{ powerNode('supplier'); }, 1850);
-
-  // STEP 4 — 1.9s: Current right → Logistics
   setTimeout(()=>{ powerTrace('t-pay-log'); }, 1900);
   setTimeout(()=>{ powerNode('logistics'); }, 2350);
-
-  // STEP 5 — 2.6s: All currents converge to store
   setTimeout(()=>{
     powerTrace('t-sup-store');
     powerTrace('t-pay-store');
     powerTrace('t-log-store');
   }, 2600);
-
-  // STEP 6 — 3.2s: STORE LIVE explodes
   setTimeout(()=>{
     powerNode('store');
     document.getElementById('board-glow').classList.add('on');
   }, 3200);
-
-  // STEP 7 — 4.0s: Text block fades in
   setTimeout(()=>{
     document.getElementById('l1-text-block').style.opacity = '1';
   }, 4000);
-
-  // STEP 8 — 4.5s: Role + button
   setTimeout(()=>{
     document.getElementById('l1-role').style.opacity = '1';
     document.getElementById('l1-btn-wrap').style.opacity = '1';
@@ -1329,41 +1633,99 @@ const orderCards = [
   { id:'#4891', product:'Grilling Charcoal Set',  city:'Taif',    name:"Reem Al-Subai'i"    },
 ];
 
+let orderSpawnTimer = null;
+
 function spawnOrders() {
+  if (orderSpawnTimer) return;
   const area = document.getElementById('order-flow-area');
   const zone = document.getElementById('l2-btn-zone');
-  function getExclusionRect() {
-    const aR=area.getBoundingClientRect(), zR=zone.getBoundingClientRect(), pad=150;
-    return { left:zR.left-aR.left-pad, right:zR.right-aR.left+pad, top:zR.top-aR.top-pad, bottom:zR.bottom-aR.top+pad };
-  }
+  const mobile = isMobile();
+
   function safeY(areaH) {
-    const ex=getExclusionRect(), minY=60, maxY=areaH-40, available=[];
+    if (mobile) {
+      // On mobile, orders flow across the dedicated top strip
+      return 40 + Math.random() * Math.max(30, areaH - 60);
+    }
+    const aR=area.getBoundingClientRect(), zR=zone.getBoundingClientRect(), pad=150;
+    const ex = { left:zR.left-aR.left-pad, right:zR.right-aR.left+pad, top:zR.top-aR.top-pad, bottom:zR.bottom-aR.top+pad };
+    const minY=60, maxY=areaH-40, available=[];
     if(ex.top>minY+30) available.push([minY,Math.min(ex.top,maxY)]);
     if(ex.bottom<maxY-30) available.push([Math.max(ex.bottom,minY),maxY]);
     if(available.length===0) return minY+Math.random()*(maxY-minY);
     const band=available[Math.floor(Math.random()*available.length)];
     return band[0]+Math.random()*(band[1]-band[0]);
   }
+
   function spawn() {
-    if(currentLevel!==2) return;
+    if(currentLevel!==2) { orderSpawnTimer = null; return; }
     const card=orderCards[Math.floor(Math.random()*orderCards.length)];
     const pkt=document.createElement('div');
     pkt.className='order-packet';
-    pkt.innerHTML=`<div class="pkt-id">${card.id}</div>${card.product} &rarr; ${card.city} &middot; ${card.name}`;
+    if (mobile) {
+      // Shorter text on mobile
+      pkt.innerHTML=`<span class="pkt-id">${card.id}</span> ${card.product.substring(0,14)}… → ${card.city}`;
+    } else {
+      pkt.innerHTML=`<div class="pkt-id">${card.id}</div>${card.product} &rarr; ${card.city}`;
+    }
     pkt.style.top=safeY(area.offsetHeight)+'px';
-    pkt.style.animationDuration=(3.5+Math.random()*2.5)+'s';
+    pkt.style.animationDuration=(mobile ? 2.5 + Math.random()*1.5 : 3.5+Math.random()*2.5)+'s';
     area.appendChild(pkt);
     pkt.addEventListener('animationend',()=>pkt.remove());
-    setTimeout(spawn, 280+Math.random()*420);
+    orderSpawnTimer = setTimeout(spawn, mobile ? 350+Math.random()*500 : 280+Math.random()*420);
   }
   spawn();
 }
 
-function toggleMetric(card) {
-  const wasExpanded=card.classList.contains('expanded');
-  document.querySelectorAll('.metric-card.expanded').forEach(c=>c.classList.remove('expanded'));
-  if(!wasExpanded) card.classList.add('expanded');
+function stopOrders() {
+  if (orderSpawnTimer) { clearTimeout(orderSpawnTimer); orderSpawnTimer = null; }
+  document.querySelectorAll('.order-packet').forEach(p => p.remove());
 }
+
+// ===== METRIC CARD TOGGLE (unified click + touch) =====
+function toggleMetric(card) {
+  const wasExpanded = card.classList.contains('expanded');
+  document.querySelectorAll('.metric-card.expanded').forEach(c => c.classList.remove('expanded'));
+  if (!wasExpanded) {
+    card.classList.add('expanded');
+    // On mobile, scroll the expanded card into view within the level
+    if (isMobile()) {
+      setTimeout(() => {
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+    }
+  }
+}
+
+// Bind all metric cards with both click and touch
+document.querySelectorAll('.metric-card').forEach(card => {
+  let touchHandled = false;
+
+  card.addEventListener('click', (e) => {
+    if (touchHandled) { touchHandled = false; return; }
+    e.stopPropagation();
+    toggleMetric(card);
+  });
+
+  card.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    touchHandled = true;
+    toggleMetric(card);
+    if (card.dataset.tooltip) {
+      showTooltip(e, card.dataset.tooltip);
+      setTimeout(hideTooltip, 2000);
+    }
+    setTimeout(() => { touchHandled = false; }, 300);
+  });
+});
+
+// Close expanded metrics when tapping outside
+document.addEventListener('touchend', (e) => {
+  if (!e.target.closest('.metric-card') && !e.target.closest('.tooltip')) {
+    document.querySelectorAll('.metric-card.expanded').forEach(c => c.classList.remove('expanded'));
+    hideTooltip();
+  }
+}, { passive: true });
 
 // ===== LEVEL 3.5 — NATIONAL SCALE =====
 function buildSelaLevel() {
@@ -1406,26 +1768,31 @@ function resetSelaLevel() {
 function buildFlowDiagram() {
   const container=document.getElementById('flow-diagram');
   container.innerHTML='';
+  const mobile = isMobile();
+  const containerW = mobile ? Math.min(360, window.innerWidth * 0.95) : 700;
+  const containerH = mobile ? 240 : 320;
+  const scale = containerW / 700;
+
   const nodeDefs=[
-    { id:'alert',    label:'⚠ BACKORDER\nALERT',      x:200,y:200,w:120 },
-    { id:'demand',   label:'Demand Signal',            x:20, y:130,w:130 },
-    { id:'forecast', label:'📊 Forecast\nModel',       x:200,y:80, w:120 },
-    { id:'supplier', label:'Supplier\nLine',           x:380,y:130,w:110 },
-    { id:'fulfil',   label:'✓ Fulfillment\nRestored', x:540,y:130,w:140 },
+    { id:'alert',    label:'⚠ BACKORDER\nALERT',      x:200*scale, y:200*scale, w:120*scale },
+    { id:'demand',   label:'Demand Signal',            x:20*scale,  y:130*scale, w:130*scale },
+    { id:'forecast', label:'📊 Forecast\nModel',       x:200*scale, y:80*scale,  w:120*scale },
+    { id:'supplier', label:'Supplier\nLine',           x:380*scale, y:130*scale, w:110*scale },
+    { id:'fulfil',   label:'✓ Fulfillment\nRestored', x:540*scale, y:130*scale, w:140*scale },
   ];
   nodeDefs.forEach(n=>{
     const el=document.createElement('div');
     el.className='flow-node'; el.id='fn-'+n.id;
-    el.style.cssText=`left:${n.x}px;top:${n.y}px;width:${n.w}px;white-space:pre-line;font-size:10px;line-height:1.4;`;
+    el.style.cssText=`left:${n.x}px;top:${n.y}px;width:${n.w}px;white-space:pre-line;font-size:${mobile?8:10}px;line-height:1.4;`;
     el.textContent=n.label;
     container.appendChild(el);
   });
   const connDefs=[
-    { id:'conn-demand-alert',    x:150,y:221,w:50 },
-    { id:'conn-demand-forecast', x:150,y:141,w:50 },
-    { id:'conn-forecast-alert',  x:255,y:148,w:2,vertical:true,h:52 },
-    { id:'conn-forecast-supplier',x:320,y:141,w:60 },
-    { id:'conn-supplier-fulfil', x:490,y:154,w:50 },
+    { id:'conn-demand-alert',    x:150*scale, y:221*scale, w:50*scale },
+    { id:'conn-demand-forecast', x:150*scale, y:141*scale, w:50*scale },
+    { id:'conn-forecast-alert',  x:255*scale, y:148*scale, w:2, vertical:true, h:52*scale },
+    { id:'conn-forecast-supplier',x:320*scale, y:141*scale, w:60*scale },
+    { id:'conn-supplier-fulfil', x:490*scale, y:154*scale, w:50*scale },
   ];
   connDefs.forEach(c=>{
     const el=document.createElement('div'); el.id=c.id;
@@ -1462,14 +1829,12 @@ function animateMap() {
   const W = mapEl.offsetWidth  || window.innerWidth;
   const H = mapEl.offsetHeight || 340;
 
-  // Dot centers derived from CSS percentage positions
-  const riyX = 0.15 * W + 6;   // left:15% + half dot width
-  const riyY = 0.62 * H + 6;   // top:62%  + half dot height
-  const beiX = 0.85 * W + 6;   // left:85% + half dot width
-  const beiY = 0.28 * H + 6;   // top:28%  + half dot height
+  const riyX = 0.15 * W + 6;
+  const riyY = 0.62 * H + 6;
+  const beiX = 0.85 * W + 6;
+  const beiY = 0.28 * H + 6;
 
-  // Bezier control points — arc capped to stay inside map bounds
-  const arcLift = Math.min(H * 0.32, riyY - 20); // never exceed top of container
+  const arcLift = Math.min(H * 0.32, riyY - 20);
   const cx1 = riyX + (beiX - riyX) * 0.30;
   const cy1 = riyY - arcLift;
   const cx2 = riyX + (beiX - riyX) * 0.70;
@@ -1490,7 +1855,6 @@ function animateMap() {
   document.getElementById('label-riyadh').textContent = '📍 Riyadh';
   document.getElementById('label-beijing').textContent = '📍 Beijing';
 
-  // Animate plane along the bezier using getPointAtLength
   function movePlaneAlongPath(progress) {
     if (!path.getTotalLength) return;
     const totalLen = path.getTotalLength();
@@ -1511,18 +1875,16 @@ function animateMap() {
     plane.style.opacity = '1';
     plane.style.transition = 'none';
 
-    // Step the plane along the path over 2s
     const duration = 2000;
-    const startTime = performance.now() + 500; // matches path draw delay
+    const startTime = performance.now() + 500;
     function stepPlane(now) {
       const elapsed = now - startTime;
       if (elapsed < 0) { requestAnimationFrame(stepPlane); return; }
       const t = Math.min(elapsed / duration, 1);
-      // Ease in-out cubic
       const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2;
       movePlaneAlongPath(ease);
       if (t < 1) requestAnimationFrame(stepPlane);
-      else movePlaneAlongPath(1); // snap to exact end
+      else movePlaneAlongPath(1);
     }
     requestAnimationFrame(stepPlane);
 
@@ -1536,9 +1898,20 @@ function animateMap() {
 // ===== TOOLTIP =====
 const tooltipEl=document.getElementById('tooltip');
 function showTooltip(e,text){ tooltipEl.textContent=text; tooltipEl.classList.add('show'); moveTooltip(e); }
-function moveTooltip(e){ let x=e.clientX+14,y=e.clientY-10; if(x+240>window.innerWidth)x=e.clientX-240; tooltipEl.style.left=x+'px'; tooltipEl.style.top=y+'px'; }
+function moveTooltip(e){
+  const cx = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0) || (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : window.innerWidth / 2);
+  const cy = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0) || (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientY : window.innerHeight / 2);
+  let x=cx+14,y=cy-10;
+  if(x+240>window.innerWidth)x=cx-240;
+  if(x<4)x=4;
+  if(y<4)y=4;
+  if(y+60>window.innerHeight) y=window.innerHeight-60;
+  tooltipEl.style.left=x+'px'; tooltipEl.style.top=y+'px';
+}
 function hideTooltip(){ tooltipEl.classList.remove('show'); }
 document.addEventListener('mousemove',(e)=>{ if(tooltipEl.classList.contains('show'))moveTooltip(e); });
+
+// Desktop hover tooltips for metric cards
 document.querySelectorAll('.metric-card[data-tooltip]').forEach(card=>{
   card.addEventListener('mouseenter',(e)=>showTooltip(e,card.dataset.tooltip));
   card.addEventListener('mouseleave',hideTooltip);
@@ -1546,17 +1919,30 @@ document.querySelectorAll('.metric-card[data-tooltip]').forEach(card=>{
 
 // ===== LEVEL NAVIGATION =====
 function goToLevel(n) {
-  if(n===currentLevel) return;
+  if(n===currentLevel || isTransitioning) return;
+  if(n < 0 || n >= totalLevels) return;
+  isTransitioning = true;
+
+  // Stop orders if leaving level 2
+  if (currentLevel === 2) stopOrders();
+
   const overlay=document.getElementById('transition-overlay');
   overlay.classList.add('active');
   setTimeout(()=>{
     const prevId=levelIds[currentLevel];
-    document.getElementById(`level-${prevId}`)?.classList.remove('active');
+    const prevScreen = document.getElementById(`level-${prevId}`);
+    if (prevScreen) { prevScreen.classList.remove('active'); prevScreen.scrollTop = 0; }
+
     currentLevel=n;
     const nextId=levelIds[currentLevel];
-    document.getElementById(`level-${nextId}`)?.classList.add('active');
+    const nextScreen = document.getElementById(`level-${nextId}`);
+    if (nextScreen) {
+      nextScreen.scrollTop = 0;
+      nextScreen.classList.add('active');
+    }
     updateHUD();
     overlay.classList.remove('active');
+    isTransitioning = false;
     onLevelEnter(n);
   },400);
 }
@@ -1564,21 +1950,53 @@ function goToLevel(n) {
 function onLevelEnter(n) {
   const panel=document.getElementById('philosophy-panel');
   const btn=document.getElementById('phil-toggle');
-  if(n===2){
+  const mobile = isMobile();
+
+  if (mobile) {
+    if(!panel.classList.contains('collapsed')){ panel.classList.add('collapsed'); btn.textContent='+'; btn.title='Expand panel'; }
+  } else if(n===2){
     if(!panel.classList.contains('collapsed')){ panel.classList.add('collapsed'); btn.textContent='+'; btn.title='Expand panel'; }
   } else {
     if(panel.classList.contains('collapsed')){ panel.classList.remove('collapsed'); btn.textContent='−'; btn.title='Collapse panel'; }
   }
+
   if(n===1){ buildCircuitBoard(); setTimeout(animateCircuitBoard, 300); }
-  if(n===2){ setTimeout(()=>{ document.getElementById('dashboard-panel').classList.add('slide-in'); spawnOrders(); },400); }
+  if(n===2){
+    // Reset dashboard state for fresh entry
+    const dp = document.getElementById('dashboard-panel');
+    if (mobile) {
+      // On mobile the panel is already visible (no transform), just ensure class
+      dp.classList.add('slide-in');
+    } else {
+      dp.classList.remove('slide-in');
+      setTimeout(()=>{ dp.classList.add('slide-in'); }, 100);
+    }
+    // Collapse any expanded metrics
+    document.querySelectorAll('.metric-card.expanded').forEach(c => c.classList.remove('expanded'));
+    setTimeout(()=>{
+      spawnOrders();
+      animateMetricValues();
+    }, mobile ? 200 : 400);
+  }
   if(n===3){ buildFlowDiagram(); }
   if(n===4){ resetSelaLevel(); buildSelaLevel(); }
   if(n===5){ setTimeout(animateMap,500); }
-  if(n===6){ /* Level 5 — CSS-driven animations */ }
 }
 
-// Reset level 1 when leaving
-const _origGoToLevel = goToLevel;
+// ===== METRIC VALUE COUNT-UP ANIMATION =====
+function animateMetricValues() {
+  const cards = document.querySelectorAll('.metric-card .metric-value');
+  cards.forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(8px)';
+    el.style.transition = 'none';
+    setTimeout(() => {
+      el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 200 + i * 150);
+  });
+}
 
 function updateHUD() {
   const dotIds=['dot-0','dot-1','dot-2','dot-3','dot-35','dot-4','dot-5'];
@@ -1597,23 +2015,78 @@ function updateHUD() {
   });
 }
 
-// ===== SCRUBBER =====
+// ===== HUD DOTS — TAP TO NAVIGATE =====
+const dotIds=['dot-0','dot-1','dot-2','dot-3','dot-35','dot-4','dot-5'];
+dotIds.forEach((dotId,i)=>{
+  const dot = document.getElementById(dotId);
+  if (!dot) return;
+  dot.addEventListener('click', () => goToLevel(i));
+  dot.addEventListener('touchend', (e) => { e.preventDefault(); goToLevel(i); });
+});
+
+// ===== SCRUBBER (mouse + touch) =====
 const track=document.getElementById('scrubber-track');
 let dragging=false;
-track.addEventListener('click',(e)=>{
+function scrubFromX(clientX) {
   const rect=track.getBoundingClientRect();
-  const pct=(e.clientX-rect.left)/rect.width;
-  goToLevel(Math.max(0,Math.min(totalLevels-1,Math.round(pct*(totalLevels-1)))));
+  const pct=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+  return Math.round(pct*(totalLevels-1));
+}
+track.addEventListener('click',(e)=>{
+  goToLevel(Math.max(0,Math.min(totalLevels-1,scrubFromX(e.clientX))));
 });
-track.addEventListener('mousedown',()=>{ dragging=true; });
+track.addEventListener('mousedown',(e)=>{ dragging=true; e.preventDefault(); });
 document.addEventListener('mouseup',()=>{ dragging=false; });
 document.addEventListener('mousemove',(e)=>{
   if(!dragging) return;
-  const rect=track.getBoundingClientRect();
-  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
-  const level=Math.round(pct*(totalLevels-1));
+  const level=scrubFromX(e.clientX);
   if(level!==currentLevel) goToLevel(level);
 });
+track.addEventListener('touchstart',(e)=>{
+  dragging=true;
+  if (e.touches[0]) {
+    const level = scrubFromX(e.touches[0].clientX);
+    if (level !== currentLevel) goToLevel(level);
+  }
+  e.preventDefault();
+}, {passive:false});
+document.addEventListener('touchend',()=>{ dragging=false; });
+document.addEventListener('touchcancel',()=>{ dragging=false; });
+document.addEventListener('touchmove',(e)=>{
+  if(!dragging || !e.touches[0]) return;
+  const level=scrubFromX(e.touches[0].clientX);
+  if(level!==currentLevel) goToLevel(level);
+}, {passive:true});
+
+// ===== SWIPE NAVIGATION =====
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+
+document.addEventListener('touchstart', (e) => {
+  if (dragging) return;
+  // Don't hijack swipes on scrollable Level 2
+  if (e.target.closest('#dashboard-panel') || e.target.closest('#l2-btn-zone')) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartTime = Date.now();
+}, {passive: true});
+
+document.addEventListener('touchend', (e) => {
+  if (dragging) return;
+  if (e.target.closest('#dashboard-panel') || e.target.closest('#l2-btn-zone')) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const dt = Date.now() - touchStartTime;
+
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
+    if (dx < 0 && currentLevel < totalLevels - 1) {
+      goToLevel(currentLevel + 1);
+    } else if (dx > 0 && currentLevel > 0) {
+      goToLevel(currentLevel - 1);
+    }
+  }
+}, {passive: true});
 
 // ===== KEYBOARD =====
 document.addEventListener('keydown',(e)=>{
@@ -1621,16 +2094,38 @@ document.addEventListener('keydown',(e)=>{
   if(e.key==='ArrowLeft'&&currentLevel>0) goToLevel(currentLevel-1);
 });
 
-// ===== INIT =====
-window.addEventListener('resize',()=>{ resizeGrid(); resizeParticles(); });
-resizeGrid(); resizeParticles(); animateParticles();
-buildEmptyGrid(); updateHUD();
+// ===== MOBILE: collapse philosophy panel by default =====
+if (window.innerWidth <= 768) {
+  const panel = document.getElementById('philosophy-panel');
+  const btn = document.getElementById('phil-toggle');
+  if (panel && !panel.classList.contains('collapsed')) {
+    panel.classList.add('collapsed');
+    btn.textContent = '+';
+    btn.title = 'Expand panel';
+  }
+}
 
-setInterval(()=>{
-  const cells=document.querySelectorAll('#empty-grid .grid-cell');
-  const random=cells[Math.floor(Math.random()*cells.length)];
-  if(random){ random.style.background='rgba(245,166,35,0.05)'; setTimeout(()=>{ random.style.background=''; },800); }
-},120);
+// ===== INIT =====
+let resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    setVH();
+    resizeGrid();
+    resizeParticles();
+    buildEmptyGrid();
+    if (currentLevel === 1) {
+      buildCircuitBoard();
+      animateCircuitBoard();
+    }
+  }, 250);
+});
+
+resizeGrid();
+resizeParticles();
+buildEmptyGrid();
+animateParticles();
+updateHUD();
 </script>
 </body>
 </html>
